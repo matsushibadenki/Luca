@@ -7,10 +7,15 @@ from .enums import ComplexityRegime
 
 logger = logging.getLogger(__name__)
 
+# ★★★ 修正箇所 ★★★
+# ファイルの場所をこのファイルからの相対パスで固定する
+STORAGE_FILE = Path(__file__).parent.parent.parent / "complexity_learning.json"
+
 class ComplexityLearner:
     """プロンプトの複雑性レジームに関する過去の結果を学習するクラス"""
-    def __init__(self, storage_path: str = 'complexity_learning.json'):
-        self.storage_path = Path(storage_path)
+    def __init__(self, storage_path: Optional[str] = None):
+        # 修正: 引数で渡されなければ、定義済みのSTORAGE_FILEを使う
+        self.storage_path = Path(storage_path) if storage_path else STORAGE_FILE
         self.suggestions = self._load_suggestions()
 
     def _load_suggestions(self) -> Dict[str, str]:
@@ -18,8 +23,7 @@ class ComplexityLearner:
         if not self.storage_path.exists():
             return {}
         try:
-            with self.storage_path.open('r') as f:
-                # 修正: json.loadがAnyを返すため、期待する型にキャストします
+            with self.storage_path.open('r', encoding='utf-8') as f:
                 return cast(Dict[str, str], json.load(f))
         except (json.JSONDecodeError, IOError) as e:
             logger.error(f"学習データの読み込みに失敗: {e}")
@@ -28,8 +32,8 @@ class ComplexityLearner:
     def _save_suggestions(self) -> None:
         """現在の提案をファイルに保存する"""
         try:
-            with self.storage_path.open('w') as f:
-                json.dump(self.suggestions, f, indent=4)
+            with self.storage_path.open('w', encoding='utf-8') as f:
+                json.dump(self.suggestions, f, indent=4, ensure_ascii=False)
         except IOError as e:
             logger.error(f"学習データの保存に失敗: {e}")
 
