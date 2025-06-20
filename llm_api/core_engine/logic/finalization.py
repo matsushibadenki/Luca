@@ -81,7 +81,15 @@ async def _evaluate_and_refine(
 # 回答案: {solution}
 # 改善された最終回答:
 """
-    response = await provider.call(refinement_prompt, system_prompt, **base_model_kwargs)
+    # 修正: provider.callに渡す引数を整理し、重複を避ける
+    call_kwargs = base_model_kwargs.copy()
+    call_kwargs.pop('system_prompt', None)
+
+    response = await provider.call(
+        prompt=refinement_prompt,
+        system_prompt=system_prompt,
+        **call_kwargs
+    )
     return cast(str, response.get('text', solution))
 
 
