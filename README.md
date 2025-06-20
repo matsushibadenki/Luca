@@ -1,4 +1,4 @@
-# **MetaIntelligence V2: 適応型推論エンジン**
+# **Luca -MetaIntelligence V2-: 適応型推論エンジン**
 
 MetaIntelligence V2は、LLM（大規模言語モデル）が直面する根本的な課題、特にApple Researchの論文「[The Illusion of Thinking](https://ml-site.cdn-apple.com/papers/the-illusion-of-thinking.pdf)」で指摘された「思考の錯覚」を克服するために設計された、次世代のAI推論フレームワークです。
 
