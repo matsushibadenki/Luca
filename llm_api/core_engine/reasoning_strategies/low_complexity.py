@@ -39,11 +39,14 @@ async def execute_low_complexity_reasoning(
 
 重要: 最初に思いついた合理的な解答が往々にして正解です。"""
 
-    # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
+    # 修正: provider.callに渡す引数を整理し、重複を避ける
+    call_kwargs = base_model_kwargs.copy()
+    call_kwargs.pop('system_prompt', None)
+
     response = await provider.call(
         prompt=efficient_prompt,
         system_prompt=system_prompt,
-        **base_model_kwargs
+        **call_kwargs
     )
 
     return {
