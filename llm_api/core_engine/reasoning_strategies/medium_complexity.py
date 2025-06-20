@@ -45,11 +45,14 @@ async def execute_medium_complexity_reasoning(
 
 各段階での思考を明示し、論理的な繋がりが分かるように記述してください。"""
 
-    # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
+    # 修正: provider.callに渡す引数を整理し、重複を避ける
+    call_kwargs = base_model_kwargs.copy()
+    call_kwargs.pop('system_prompt', None)
+
     response = await provider.call(
         prompt=structured_prompt,
         system_prompt=system_prompt,
-        **base_model_kwargs
+        **call_kwargs
     )
 
     return {
