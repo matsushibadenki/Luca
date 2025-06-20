@@ -75,11 +75,14 @@ async def _decompose_complex_problem(
         "Output a JSON array of sub-problems."
     )
     
-    # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
+    # 修正: provider.callに渡す引数を整理し、重複を避ける
+    call_kwargs = base_model_kwargs.copy()
+    call_kwargs.pop('system_prompt', None)
+    
     response = await provider.call(
         prompt=decomposition_prompt,
         system_prompt=system_prompt,
-        **base_model_kwargs
+        **call_kwargs
     )
     if response.get('error'):
         return {'error': response['error']}
@@ -117,11 +120,15 @@ async def _solve_decomposed_problems(
         async with semaphore:
             staged_prompt = f"""Given the original problem: "{original_prompt}", solve the following sub-problem: "{sub_problem}"."""
             logger.debug(f"サブ問題 {index+1}/{len(sub_problems)} の解決を開始...")
-            # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
+            
+            # 修正: provider.callに渡す引数を整理し、重複を避ける
+            call_kwargs = base_model_kwargs.copy()
+            call_kwargs.pop('system_prompt', None)
+
             response = await provider.call(
                 prompt=staged_prompt,
                 system_prompt=system_prompt,
-                **base_model_kwargs
+                **call_kwargs
             )
             logger.debug(f"サブ問題 {index+1}/{len(sub_problems)} の解決が完了。")
             return {'sub_problem': sub_problem, 'solution': response.get('text', ''), 'error': response.get('error')}
@@ -138,6 +145,10 @@ async def _integrate_staged_solutions(
     if not valid_solutions:
         return {"error": "統合する有効なサブ問題の解決策がありません。"}
 
+    # 修正: provider.callに渡す引数を整理し、重複を避ける
+    call_kwargs = base_model_kwargs.copy()
+    call_kwargs.pop('system_prompt', None)
+
     integrated_solution = valid_solutions[0]
     for i, next_solution in enumerate(valid_solutions[1:]):
         integration_prompt = f"""Integrate the 'New Information' into the 'Previous Integrated Result'.
@@ -149,11 +160,10 @@ async def _integrate_staged_solutions(
 {next_solution}
 
 # New Integrated Result:"""
-        # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
         response = await provider.call(
             prompt=integration_prompt,
             system_prompt=system_prompt,
-            **base_model_kwargs
+            **call_kwargs
         )
         if response.get('error'):
             return cast(str, integrated_solution)
@@ -165,10 +175,9 @@ async def _integrate_staged_solutions(
 {integrated_solution}
 
 # Polished Final Report:"""
-    # 最終修正：引数をキーワード引数で渡し、モックの安定性を確保
     final_response = await provider.call(
         prompt=final_polish_prompt,
         system_prompt=system_prompt,
-        **base_model_kwargs
+        **call_kwargs
     )
     return cast(str, final_response.get('text', integrated_solution))
